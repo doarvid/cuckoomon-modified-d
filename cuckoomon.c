@@ -95,7 +95,7 @@ static hook_t g_hooks[] = {
 	HOOK_SPECIAL(ole32, CoCreateInstanceEx),
 	HOOK_SPECIAL(ole32, CoGetClassObject),
 
-	HOOK_NOTAIL(ntdll, RtlDispatchException, 2),
+	//HOOK_NOTAIL(ntdll, RtlDispatchException, 2),
 	HOOK_NOTAIL(ntdll, NtRaiseException, 3),
 
 	// lowest variant of MoveFile()
@@ -280,7 +280,7 @@ static hook_t g_hooks[] = {
     HOOK(ntdll, NtCreateMutant),
     HOOK(ntdll, NtOpenMutant),
 	HOOK(ntdll, NtCreateEvent),
-	HOOK(ntdll, NtOpenEvent),
+//	HOOK(ntdll, NtOpenEvent),
 	HOOK(ntdll, NtCreateNamedPipeFile),
 	HOOK(ntdll, NtAddAtom),
 	HOOK(ntdll, NtAddAtomEx),
@@ -305,8 +305,8 @@ static hook_t g_hooks[] = {
 	HOOK(ntdll, NtDuplicateObject),
     HOOK(ntdll, NtMakeTemporaryObject),
     HOOK(ntdll, NtMakePermanentObject),
-    HOOK(ntdll, NtOpenSection),
-    HOOK(ntdll, NtMapViewOfSection),
+ //   HOOK(ntdll, NtOpenSection),
+   // HOOK(ntdll, NtMapViewOfSection),
 	HOOK(kernel32, WaitForDebugEvent),
 	HOOK(ntdll, DbgUiWaitStateChange),
 	HOOK(advapi32, CreateProcessWithLogonW),
@@ -315,7 +315,8 @@ static hook_t g_hooks[] = {
     // all variants of ShellExecute end up in ShellExecuteExW
     HOOK(shell32, ShellExecuteExW),
     HOOK(ntdll, NtUnmapViewOfSection),
-    HOOK(ntdll, NtAllocateVirtualMemory),
+	#if 0
+   // HOOK(ntdll, NtAllocateVirtualMemory),
     HOOK(ntdll, NtReadVirtualMemory),
     HOOK(kernel32, ReadProcessMemory),
     HOOK(ntdll, NtWriteVirtualMemory),
@@ -593,6 +594,7 @@ static hook_t g_hooks[] = {
 	HOOK(cryptsp, CryptCreateHash),
 	HOOK(cryptsp, CryptEnumProvidersA),
 	HOOK(cryptsp, CryptEnumProvidersW),
+	#endif
 };
 
 void set_hooks_dll(const wchar_t *library)
@@ -913,6 +915,7 @@ OSVERSIONINFOA g_osverinfo;
 
 BOOL APIENTRY DllMain(HANDLE hModule, DWORD dwReason, LPVOID lpReserved)
 {
+	debugOutput("dll inject...");
 	char config_fname[MAX_PATH];
 	lasterror_t lasterror;
 
@@ -963,17 +966,18 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD dwReason, LPVOID lpReserved)
 
         // read the config settings
 		if (!read_config())
+
 #if CUCKOODBG
 			;
 #else
 			// if we're not debugging, then failure to read the cuckoomon config should be a critical error
 			goto early_abort;
 #endif
-
 		// don't inject into our own binaries run out of the analyzer directory unless they're the first process (intended)
 		if (wcslen(g_config.w_analyzer) && !wcsnicmp(our_process_path, g_config.w_analyzer, wcslen(g_config.w_analyzer)) && !g_config.first_process)
 			goto out;
 
+		debugOutput("protect ...");
 		if (g_config.debug) {
 			AddVectoredExceptionHandler(1, cuckoomon_exception_handler);
 			SetUnhandledExceptionFilter(cuckoomon_exception_handler);
@@ -991,14 +995,19 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD dwReason, LPVOID lpReserved)
             add_protected_pid(pids[i]);
         }
 
+		debugOutput("hkcu_init ...");
 		hkcu_init();
 
+		debugOutput("log_init ...");
         // initialize the log file
         log_init(CUCKOODBG);
 
+		debugOutput("init_sleep_skip ...");
         // initialize the Sleep() skipping stuff
         init_sleep_skip(g_config.first_process);
 
+
+		debugOutput("init_startup_time ...");
         // we skip a random given amount of milliseconds each run
         init_startup_time(g_config.startup_time);
 
@@ -1010,6 +1019,7 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD dwReason, LPVOID lpReserved)
 		// initialize our unhook detection
         unhook_init_detection();
 
+		debugOutput("procname_watch_init ...");
         // initialize detection of process name spoofing
 		procname_watch_init();
 
@@ -1019,6 +1029,7 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD dwReason, LPVOID lpReserved)
 		// initialize misc critical sections
 		InitializeCriticalSection(&readfile_critsec);
 
+		debugOutput("set hooks ...");
 		// initialize all hooks
         set_hooks();
 

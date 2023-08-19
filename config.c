@@ -223,6 +223,10 @@ int read_config(void)
 
 	fclose(fp);
     DeleteFileA(config_fname);
-	debugOutput("load config ,filename=%s", config_fname);
+	debugOutput("loaded config ,filename=%s", config_fname);
+	debugOutput("debug = %d", g_config.debug);
+	OutputDebugStringW(g_config.pipe_name);
+	debugOutput("logserver = %s", g_config.logserver);
+
 	return 1;
 }

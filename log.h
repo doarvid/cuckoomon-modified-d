@@ -80,7 +80,7 @@ void log_init(int debug);
 void log_flush();
 void log_free();
 void debugOutput(const char* fmt, ...);
-
+void debugOutputw(const char* fmt, ...);
 void debug_message(const char *msg);
 
 #define DEBUG_SOCKET 0xfffffffe

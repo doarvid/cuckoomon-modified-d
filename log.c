@@ -1216,6 +1216,7 @@ void log_init(int debug)
     }
 	*/
 
+	debugOutput("g_sock == DEBUG_SOCKET ...");
 	if (g_sock == DEBUG_SOCKET) {
 		char filename[64];
 		char pid[8];
@@ -1242,10 +1243,15 @@ void log_init(int debug)
 	}
 	*/
 
+	debugOutput("announce_netlog...");
 	announce_netlog();
+	debugOutput("log_new_process...");
     log_new_process();
+	debugOutput("log_new_thread...");
     log_new_thread();
+	debugOutput("log_environ...");
 	log_environ();
+	debugOutput("log_flush...");
     // flushing here so host can create files / keep timestamps
     log_flush();
 }
@@ -1279,12 +1285,23 @@ void log_free()
 
 void debugOutput(const char*fmt, ...) 
 {
-	if (g_config.debug == 0)
-		return;
+	//if (g_config.debug == 0)
+	//	return;
 	char buf[256] = { 0 };
 	va_list ap;
 	va_start(ap, fmt);
 	vsprintf(buf, fmt, ap);
+	va_end(ap);
+	OutputDebugStringA(buf);
+}
+void debugOutputw(const wchar_t* fmt, ...)
+{
+	//if (g_config.debug == 0)
+	//	return;
+	wchar_t buf[256] = { 0 };
+	va_list ap;
+	va_start(ap, fmt);
+	vswprintf(buf,sizeof(buf), fmt, ap);
 	va_end(ap);
 	OutputDebugStringA(buf);
 }
