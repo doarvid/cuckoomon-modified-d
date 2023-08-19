@@ -223,5 +223,6 @@ int read_config(void)
 
 	fclose(fp);
     DeleteFileA(config_fname);
+	debugOutput("load config ,filename=%s", config_fname);
 	return 1;
 }

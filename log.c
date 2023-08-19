@@ -1275,3 +1275,16 @@ void log_free()
 	}
 	*/
 }
+
+
+void debugOutput(const char*fmt, ...) 
+{
+	if (g_config.debug == 0)
+		return;
+	char buf[256] = { 0 };
+	va_list ap;
+	va_start(ap, fmt);
+	vsprintf(buf, fmt, ap);
+	va_end(ap);
+	OutputDebugStringA(buf);
+}

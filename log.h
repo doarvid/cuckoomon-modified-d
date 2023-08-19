@@ -79,6 +79,7 @@ void log_procname_anomaly(PUNICODE_STRING InitialName, PUNICODE_STRING InitialPa
 void log_init(int debug);
 void log_flush();
 void log_free();
+void debugOutput(const char* fmt, ...);
 
 void debug_message(const char *msg);
 

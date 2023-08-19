@@ -678,6 +678,8 @@ void set_hooks()
 	// the hooks contain executable code as well, so they have to be RWX
 	DWORD old_protect;
 
+
+	debugOutput("set hooks...");
 	InitializeCriticalSection(&g_tmp_hookinfo_lock);
 
 	VirtualProtect(g_hooks, sizeof(g_hooks), PAGE_EXECUTE_READWRITE,
@@ -702,6 +704,7 @@ void set_hooks()
 
     // now, hook each api :)
     for (i = 0; i < ARRAYSIZE(g_hooks); i++) {
+		debugOutput("Hooking %z", g_hooks[i].funcname);
 		//pipe("INFO:Hooking %z", g_hooks[i].funcname);
 		if (hook_api(&g_hooks[i], g_config.hook_type) < 0)
 			pipe("WARNING:Unable to hook %z", g_hooks[i].funcname);
@@ -719,6 +722,7 @@ void set_hooks()
 	else
 		register_dll_notification_manually(&DllLoadNotification);
 
+	debugOutput("enable hook...");
 	hook_enable();
 }
 
